@@ -19,10 +19,6 @@ const server = app.listen(PORT, handleListening);
 const io = socketIO.listen(server);
 // socketIO는 server와 client가 동시에 될수 있다.
 
-let sockets = [];
-// 연결된 소켓 id를 보기위한 빈 배열
-
-io.on("connection", socket => sockets.push(socket.id));
-// 연결될때마다 sockets에 socket.id값을 push해준다
-
-setInterval(() => console.log(sockets), 1000);
+io.on("connection", socket => {
+  socket.on("helloGuys", () => console.log("the client said hello"));
+});
