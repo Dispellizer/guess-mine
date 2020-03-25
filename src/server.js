@@ -20,5 +20,13 @@ const io = socketIO.listen(server);
 // socketIO는 server와 client가 동시에 될수 있다.
 
 io.on("connection", socket => {
-  socket.on("helloGuys", () => console.log("the client said hello"));
+  socket.on("newMessage", ({ message }) => {
+    socket.broadcast.emit("messageNotifi", {
+      message,
+      nickname: socket.nickname || "Anon"
+    });
+  });
+  socket.on("setNickname", ({ nickname }) => {
+    socket.nickname = nickname;
+  });
 });
