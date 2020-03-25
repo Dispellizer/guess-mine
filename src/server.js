@@ -2,6 +2,7 @@ import { join } from "path";
 import express from "express";
 import socketIO from "socket.io";
 import logger from "morgan";
+import socketController from "./socketController";
 
 const PORT = 5000;
 const app = express();
@@ -20,13 +21,5 @@ const io = socketIO.listen(server);
 // socketIO는 server와 client가 동시에 될수 있다.
 
 io.on("connection", socket => {
-  socket.on("newMessage", ({ message }) => {
-    socket.broadcast.emit("messageNotifi", {
-      message,
-      nickname: socket.nickname || "Anon"
-    });
-  });
-  socket.on("setNickname", ({ nickname }) => {
-    socket.nickname = nickname;
-  });
+  socketController(socket);
 });
