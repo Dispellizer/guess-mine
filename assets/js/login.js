@@ -7,8 +7,9 @@ const LOGGED_IN = "loggedIn";
 const nickname = localStorage.getItem(NICKNAME);
 
 const logIn = nickname => {
-  const socket = io("/");
-  socket.emit("setNickname", { nickname });
+  //   const socket = io("/");을 모든 파일에서 사용하기 위해 아래와 같이 입력해주면 된다.
+  window.socket = io("/");
+  window.socket.emit(window.events.setNickname, { nickname });
 };
 
 if (nickname === null) {
