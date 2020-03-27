@@ -1,6 +1,11 @@
 import events from "./events";
+import { chooseWord } from "../assets/js/words";
 
 let sockets = [];
+let inProgress = false;
+let word = null;
+
+const chooseLeader = () => sockets[Math.floor(Math.random() * sockets.length)];
 
 const socketController = (socket, io) => {
   const broadcast = (event, data) => socket.broadcast.emit(event, data);
@@ -8,12 +13,19 @@ const socketController = (socket, io) => {
   // io를 이용하여 나를 포함한 모두에게 broadcast를 해줄수 있다.
   const sendPlayerUpdate = () =>
     superBroadcast(events.playerUpdate, { sockets });
-
+  const startGame = () => {
+    if (inProgress === false) {
+      inProgress = true;
+      const leader = chooseLeader;
+      word = chooseWord();
+    }
+  };
   socket.on(events.setNickname, ({ nickname }) => {
     socket.nickname = nickname;
     sockets.push({ id: socket.id, points: 0, nickname: nickname });
     broadcast(events.newUser, { nickname });
     sendPlayerUpdate();
+    startGame();
   });
 
   socket.on(events.disconnect, () => {
