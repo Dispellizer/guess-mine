@@ -13,7 +13,7 @@ html(lang="en")
         .gameContainer#jsGame
             .main
                 canvas.canvas#jsCanvas
-                .controls#controls
+                .controls#jsControls
                     button#jsMode Fill
                     .colors
                         .color.jsColor(style="background-color:rgb(0, 0, 0)")
@@ -32,6 +32,6 @@ html(lang="en")
                     input(placeholder="Write a message", type="text")
         script.
             window.events = !{events}
-        //- events.js를 프론트에서도 사용하기 위해서 입력
+            //- events.js를 프론트에서도 사용하기 위해서 입력
         script(src="/socket.io/socket.io.js")
         script(src="/js/main.js")

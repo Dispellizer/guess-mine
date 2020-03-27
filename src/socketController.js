@@ -1,5 +1,5 @@
 import events from "./events";
-import { chooseWord } from "../assets/js/words";
+import { chooseWord } from "./words";
 
 let sockets = [];
 let inProgress = false;
@@ -17,20 +17,31 @@ const socketController = (socket, io) => {
     if (inProgress === false) {
       inProgress = true;
       const leader = chooseLeader;
-      word = chooseWord();
+      word = chooseWord;
+      io.to(leader.id).emit(events.leaderNotif, { word });
+      // 특정 사용자에게만 이벤트를 보내고 싶으면 io.to를 사용
+      superBroadcast(events.gameStarted);
     }
+  };
+  const endGame = () => {
+    inProgress = false;
   };
   socket.on(events.setNickname, ({ nickname }) => {
     socket.nickname = nickname;
     sockets.push({ id: socket.id, points: 0, nickname: nickname });
     broadcast(events.newUser, { nickname });
     sendPlayerUpdate();
-    startGame();
+    if (sockets.length === 1) {
+      startGame();
+    }
   });
 
   socket.on(events.disconnect, () => {
     sockets = sockets.filter(aSocket => aSocket.id !== socket.id);
     // filter은 조건에 부합하는 것들만 남기는것
+    if (sockets.length === 1) {
+      endGame();
+    }
     broadcast(events.disconnected, { nickname: socket.nickname });
     sendPlayerUpdate();
   });
