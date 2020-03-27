@@ -5,7 +5,7 @@ import logger from "morgan";
 import socketController from "./socketController";
 import events from "./events";
 
-const PORT = 5000;
+const PORT = 4000;
 const app = express();
 app.set("view engine", "pug");
 app.set("views", join(__dirname, "views"));
@@ -26,5 +26,5 @@ const io = socketIO.listen(server);
 // socketIO는 server와 client가 동시에 될수 있다.
 
 io.on("connection", socket => {
-  socketController(socket);
+  socketController(socket, io);
 });
