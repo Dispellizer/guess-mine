@@ -19,23 +19,36 @@ const socketController = (socket, io) => {
       inProgress = true;
       leader = chooseLeader();
       word = chooseWord();
+      superBroadcast(events.gameStarting);
       setTimeout(() => {
         superBroadcast(events.gameStarted);
         io.to(leader.id).emit(events.leaderNotif, { word });
         // 특정 사용자에게만 이벤트를 보내고 싶으면 io.to를 사용
-      }, 2000);
+      }, 3000);
     }
   };
   const endGame = () => {
     inProgress = false;
     superBroadcast(events.gameEnded);
   };
+
+  const addPoints = id => {
+    sockets = sockets.map(socket => {
+      if (socket.id === id) {
+        socket.points += 10;
+      }
+      return socket;
+    });
+    sendPlayerUpdate();
+    endGame();
+  };
+
   socket.on(events.setNickname, ({ nickname }) => {
     socket.nickname = nickname;
     sockets.push({ id: socket.id, points: 0, nickname: nickname });
     broadcast(events.newUser, { nickname });
     sendPlayerUpdate();
-    if (sockets.length === 2) {
+    if (sockets.length <= 2) {
       startGame();
     } else if (leader) {
       if (leader.id === socket.id) {
@@ -54,9 +67,18 @@ const socketController = (socket, io) => {
     sendPlayerUpdate();
   });
 
-  socket.on(events.sendMsg, ({ message }) =>
-    broadcast(events.newMsg, { message, nickname: socket.nickname })
-  );
+  socket.on(events.sendMsg, ({ message }) => {
+    if (message === word) {
+      superBroadcast(events.newMsg, {
+        message: `Winner is ${socket.nickname}, word was: ${word}`,
+        nickname: "Bot"
+      });
+      addPoints(socket.id);
+    } else {
+      broadcast(events.newMsg, { message, nickname: socket.nickname });
+    }
+  });
+
   socket.on(events.beginPath, ({ x, y }) =>
     broadcast(events.beganPath, { x, y })
   );
