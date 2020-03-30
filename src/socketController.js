@@ -5,6 +5,7 @@ let sockets = [];
 let inProgress = false;
 let word = null;
 let leader = null;
+let timeout = null;
 
 const chooseLeader = () => sockets[Math.floor(Math.random() * sockets.length)];
 
@@ -15,21 +16,28 @@ const socketController = (socket, io) => {
   const sendPlayerUpdate = () =>
     superBroadcast(events.playerUpdate, { sockets });
   const startGame = () => {
-    if (inProgress === false) {
-      inProgress = true;
-      leader = chooseLeader();
-      word = chooseWord();
-      superBroadcast(events.gameStarting);
-      setTimeout(() => {
-        superBroadcast(events.gameStarted);
-        io.to(leader.id).emit(events.leaderNotif, { word });
-        // 특정 사용자에게만 이벤트를 보내고 싶으면 io.to를 사용
-      }, 3000);
+    if (sockets.length > 1) {
+      if (inProgress === false) {
+        inProgress = true;
+        leader = chooseLeader();
+        word = chooseWord();
+        superBroadcast(events.gameStarting);
+        setTimeout(() => {
+          superBroadcast(events.gameStarted);
+          io.to(leader.id).emit(events.leaderNotif, { word });
+          // 특정 사용자에게만 이벤트를 보내고 싶으면 io.to를 사용
+          timeout = setTimeout(endGame, 30000);
+        }, 3000);
+      }
     }
   };
   const endGame = () => {
     inProgress = false;
     superBroadcast(events.gameEnded);
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+    setTimeout(() => startGame(), 2000);
   };
 
   const addPoints = id => {
@@ -48,13 +56,7 @@ const socketController = (socket, io) => {
     sockets.push({ id: socket.id, points: 0, nickname: nickname });
     broadcast(events.newUser, { nickname });
     sendPlayerUpdate();
-    if (sockets.length <= 2) {
-      startGame();
-    } else if (leader) {
-      if (leader.id === socket.id) {
-        endGame();
-      }
-    }
+    startGame();
   });
 
   socket.on(events.disconnect, () => {
